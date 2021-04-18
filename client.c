@@ -41,7 +41,7 @@ int main(int argc, char ** argv) {
 	fgets(name, NAME_LEN, stdin);
 	str_trim_lf(name, strlen(name));
 
-	if (strlen(name) > NAME_LEN - 1 || strlen(name) < 2) {
+	if (strlen(name) > NAME_LEN || strlen(name) < 2) {
 		printf("Digite el nombre correctamente\n");
 		return EXIT_FAILURE;
 	}
@@ -103,8 +103,8 @@ void recv_msg_thread() {
 }
 
 void send_msg_handler() {
-	char buffer[BUFFER_SIZE] = {};
-	char message[BUFFER_SIZE + NAME_LEN] = {};
+	char message[BUFFER_SIZE] = {};
+	char buffer[BUFFER_SIZE + NAME_LEN + 2] = {};
 	
 	while(1) {
 		str_overwrite_stdout();
@@ -124,7 +124,7 @@ void send_msg_handler() {
 }
 
 void str_overwrite_stdout(void) {
-    printf("\r%s", "> ");
+    printf("%s", "> ");
     fflush(stdout);
 }
 
