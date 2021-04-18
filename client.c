@@ -1,4 +1,3 @@
-
 #include <sys/socket.h>
 #include <sys/types.h>
 #include <netinet/in.h>
@@ -11,12 +10,11 @@
 #include <pthread.h>
 #include <signal.h>
 
-#define MAX_CLIENTS 100
 #define BUFFER_SIZE 2048
 #define NAME_LEN 32
 
 volatile sig_atomic_t flag = 0;
-int sock_fd = -1;
+int sock_fd = 0;
 char name[NAME_LEN];
 
 void str_trim_lf(char* arr, int length);
@@ -24,7 +22,7 @@ void str_overwrite_stdout(void);
 
 void catch_ctrl_c_and_exit(int sig);
 
-void recv_msg_thread();
+void recv_msg_handler();
 void send_msg_handler();
 
 int main(int argc, char ** argv) {
@@ -72,7 +70,7 @@ int main(int argc, char ** argv) {
 	}
 
 	pthread_t recv_msg_thread;
-	if (pthread_create(&recv_msg_thread, NULL, (void*) recv_msg_thread, NULL) != 0) {
+	if (pthread_create(&recv_msg_thread, NULL, (void*) recv_msg_handler, NULL) != 0) {
 		printf("Error: pthread\n");
 		return EXIT_FAILURE;
 	}
@@ -88,7 +86,7 @@ int main(int argc, char ** argv) {
 	return EXIT_SUCCESS;
 }
 
-void recv_msg_thread() {
+void recv_msg_handler() {
 	char message[BUFFER_SIZE] = {};
 	while(1) {
 		int receive = recv(sock_fd, message, BUFFER_SIZE, 0);
@@ -117,7 +115,7 @@ void send_msg_handler() {
 			sprintf(buffer, "%s: %s\n", name, message);
 			send(sock_fd, buffer, strlen(buffer), 0);
 		}
-		bzero(buffer, BUFFER_SIZE + NAME_LEN);
+		bzero(buffer, BUFFER_SIZE + NAME_LEN + 2);
 		bzero(message, BUFFER_SIZE);
 	}
 	catch_ctrl_c_and_exit(2);

@@ -38,7 +38,7 @@ void send_message(char *s, int uid);
 
 void str_trim_lf(char* arr, int length);
 void str_overwrite_stdout(void);
-void print_ip_addr(struct sockaddr_in addr);
+void print_client_addr(struct sockaddr_in addr);
 
 int main(int argc, char ** argv) {
     if (argc != 2 ) {
@@ -92,7 +92,8 @@ int main(int argc, char ** argv) {
         // Check for MAX_CLIENTS
         if ( (cli_count + 1) == MAX_CLIENTS ) {
             printf("Maximo numero de cientes conectados. Conexion rechazada\n");
-            print_ip_addr(cli_addr);
+            print_client_addr(cli_addr);
+            printf(":%d\n", cli_addr.sin_port);
             close(connfd);
             continue;
         }
@@ -118,8 +119,8 @@ void *handle_client(void *arg) {
     char buffer[BUFFER_SIZE];
     char name[NAME_LEN];
     int leave_flag = 0;
-    cli_count++;
 
+    cli_count++;
     client_t *client = (client_t*) arg;
 
     if (recv(client->sock_fd, name, NAME_LEN, 0) <= 0 
@@ -153,6 +154,7 @@ void *handle_client(void *arg) {
             sprintf(buffer, "%s ha salido\n", client->name);
             printf("%s", buffer);
             send_message(buffer, client->uid);
+            leave_flag = 1;
         } else {
             printf("Error: -1\n");
             leave_flag = 1;
@@ -167,7 +169,7 @@ void *handle_client(void *arg) {
     return NULL;
 }
 
-void print_ip_addr(struct sockaddr_in addr) {
+void print_client_addr(struct sockaddr_in addr) {
     printf("%d.%d.%d.%d", 
             addr.sin_addr.s_addr & 0xff,
             (addr.sin_addr.s_addr & 0xff00) >> 8,
@@ -226,7 +228,8 @@ void send_message(char *s, int uid) {
         if (clients[i]) {
             if (clients[i]->uid != uid) {
                 if (write(clients[i]->sock_fd, s, strlen(s)) < 0) {
-                    printf("Error: Write to descriptor failed\n");
+                    // printf("Error: Write to descriptor failed\n");
+                    perror("Error: Write to descriptor failed\n");
                     break;
                 }
             }
