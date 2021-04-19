@@ -36,6 +36,8 @@ void queue_remove(int uid);
 
 void send_message(char *s, int uid);
 
+void send_msg_handler();
+
 void str_trim_lf(char* arr, int length);
 void str_overwrite_stdout(void);
 void print_client_addr(struct sockaddr_in addr);
@@ -107,6 +109,12 @@ int main(int argc, char ** argv) {
         // Agregar el cliente a la cola
         queue_add(client);
         pthread_create(&tid, NULL, &handle_client, (void*) client);
+
+        pthread_t send_msg_thread;
+        if (pthread_create(&send_msg_thread, NULL, (void*) send_msg_handler, NULL) != 0) {
+            printf("Error: pthread\n");
+            return EXIT_FAILURE;
+        }
 
         // Reducir el uso de la CPU
         sleep(1);
@@ -237,4 +245,25 @@ void send_message(char *s, int uid) {
     }
 
     pthread_mutex_unlock(&clients_mutex);
+}
+
+void send_msg_handler() {
+	char message[BUFFER_SIZE] = {};
+	/* char buffer[BUFFER_SIZE + NAME_LEN + 2] = {}; */
+	
+	while(1) {
+		str_overwrite_stdout();
+		fgets(message, BUFFER_SIZE, stdin);
+		str_trim_lf(message, BUFFER_SIZE);
+
+		if (strcmp(message, "exit") == 0) {
+			break;
+		} else {
+			/* sprintf(buffer, "%s: %s\n", name, message); */
+			send_message(message, 0);
+		}
+		/* bzero(buffer, BUFFER_SIZE + NAME_LEN + 2); */
+		bzero(message, BUFFER_SIZE);
+	}
+	// catch_ctrl_c_and_exit(2);
 }
