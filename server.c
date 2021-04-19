@@ -16,6 +16,7 @@
 
 static _Atomic unsigned int cli_count = 0;
 static int uid = 10;
+volatile sig_atomic_t flag = 0;
 
 // Client structure 
 typedef struct {
@@ -38,9 +39,12 @@ void send_message(char *s, int uid);
 
 void send_msg_handler();
 
+void close_all_sockets();
+
 void str_trim_lf(char* arr, int length);
 void str_overwrite_stdout(void);
 void print_client_addr(struct sockaddr_in addr);
+void catch_ctrl_c_and_exit(int sig);
 
 int main(int argc, char ** argv) {
     if (argc != 2 ) {
@@ -87,6 +91,12 @@ int main(int argc, char ** argv) {
 
     printf("Welcome\n");
 
+    pthread_t send_msg_thread;
+    if (pthread_create(&send_msg_thread, NULL, (void*) send_msg_handler, NULL) != 0) {
+        printf("Error: pthread\n");
+        return EXIT_FAILURE;
+    }
+
     while(1) {
         socklen_t cli_len = sizeof(cli_addr);
         connfd = accept(listenfd, (struct sockaddr*)&cli_addr, &cli_len);
@@ -109,12 +119,6 @@ int main(int argc, char ** argv) {
         // Agregar el cliente a la cola
         queue_add(client);
         pthread_create(&tid, NULL, &handle_client, (void*) client);
-
-        pthread_t send_msg_thread;
-        if (pthread_create(&send_msg_thread, NULL, (void*) send_msg_handler, NULL) != 0) {
-            printf("Error: pthread\n");
-            return EXIT_FAILURE;
-        }
 
         // Reducir el uso de la CPU
         sleep(1);
@@ -156,7 +160,7 @@ void *handle_client(void *arg) {
             if (strlen(buffer) > 0) {
                 send_message(buffer, client->uid);
                 str_trim_lf(buffer, strlen(buffer));
-                printf("%s -> %s\n", buffer, client->name);
+                printf("%s\n", buffer);
             }
         } else if (receive == 0 || strcmp(buffer, "exit") == 0) {
             sprintf(buffer, "%s ha salido\n", client->name);
@@ -249,21 +253,38 @@ void send_message(char *s, int uid) {
 
 void send_msg_handler() {
 	char message[BUFFER_SIZE] = {};
-	/* char buffer[BUFFER_SIZE + NAME_LEN + 2] = {}; */
+    char buffer[BUFFER_SIZE + 10] = {};
 	
 	while(1) {
 		str_overwrite_stdout();
 		fgets(message, BUFFER_SIZE, stdin);
 		str_trim_lf(message, BUFFER_SIZE);
-
 		if (strcmp(message, "exit") == 0) {
 			break;
 		} else {
-			/* sprintf(buffer, "%s: %s\n", name, message); */
-			send_message(message, 0);
+			sprintf(buffer, "%s: %s\n", "server", message);
+			send_message(buffer, 0);
 		}
-		/* bzero(buffer, BUFFER_SIZE + NAME_LEN + 2); */
 		bzero(message, BUFFER_SIZE);
+        bzero(buffer, BUFFER_SIZE + 10);
 	}
-	// catch_ctrl_c_and_exit(2);
+    send_message("exit", 0);
+    close_all_sockets();
+}
+
+void catch_ctrl_c_and_exit(int sig) {
+	flag = 1;
+}
+
+void close_all_sockets() {
+    int i;
+    pthread_mutex_lock(&clients_mutex);
+    
+    for (i=0; i < MAX_CLIENTS; i++) {
+        if (clients[i]) {
+            close(clients[i]->sock_fd);
+        }
+    }
+    pthread_mutex_unlock(&clients_mutex);
+    exit(EXIT_SUCCESS);
 }

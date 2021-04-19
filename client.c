@@ -91,6 +91,11 @@ void recv_msg_handler() {
 	while(1) {
 		int receive = recv(sock_fd, message, BUFFER_SIZE, 0);
 		if (receive > 0) {
+            if (strcmp(message, "exit") == 0) {
+                printf("Servidor finalizado\n");
+                catch_ctrl_c_and_exit(2);
+                break;
+            }
 			printf("%s", message);
 			str_overwrite_stdout();
 		} else if (receive == 0) {
