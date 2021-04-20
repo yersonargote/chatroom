@@ -32,8 +32,8 @@ pthread_mutex_t clients_mutex = PTHREAD_MUTEX_INITIALIZER;
 
 void *handle_client(void *arg);
 
-void queue_add(client_t *c);
-void queue_remove(int uid);
+void add_client(client_t *c);
+void remove_client(int uid);
 
 void send_message(char *s, int uid);
 
@@ -117,7 +117,7 @@ int main(int argc, char ** argv) {
         client->uid = uid++;
 
         // Agregar el cliente a la cola
-        queue_add(client);
+        add_client(client);
         pthread_create(&tid, NULL, &handle_client, (void*) client);
 
         // Reducir el uso de la CPU
@@ -174,7 +174,7 @@ void *handle_client(void *arg) {
         bzero(buffer, BUFFER_SIZE);
     }
     close(client->sock_fd);
-    queue_remove(client->uid);
+    remove_client(client->uid);
     free(client);
     cli_count--;
     pthread_detach(pthread_self());
@@ -205,7 +205,7 @@ void str_trim_lf(char* arr, int length) {
     }
 }
 
-void queue_add(client_t *client) {
+void add_client(client_t *client) {
     int i;
     pthread_mutex_lock(&clients_mutex);
 
@@ -218,7 +218,7 @@ void queue_add(client_t *client) {
     pthread_mutex_unlock(&clients_mutex);
 }
 
-void queue_remove(int uid) {
+void remove_client(int uid) {
     int i;
     pthread_mutex_lock(&clients_mutex);
     for (i = 0; i < MAX_CLIENTS; i++) {
@@ -260,6 +260,7 @@ void send_msg_handler() {
 		fgets(message, BUFFER_SIZE, stdin);
 		str_trim_lf(message, BUFFER_SIZE);
 		if (strcmp(message, "exit") == 0) {
+            send_message("exit", 0);
 			break;
 		} else {
 			sprintf(buffer, "%s: %s\n", "server", message);
@@ -268,8 +269,8 @@ void send_msg_handler() {
 		bzero(message, BUFFER_SIZE);
         bzero(buffer, BUFFER_SIZE + 10);
 	}
-    send_message("exit", 0);
     close_all_sockets();
+    exit(EXIT_SUCCESS);
 }
 
 void catch_ctrl_c_and_exit(int sig) {
@@ -282,9 +283,9 @@ void close_all_sockets() {
     
     for (i=0; i < MAX_CLIENTS; i++) {
         if (clients[i]) {
+            // remove_client(clients[i]->uid);
             close(clients[i]->sock_fd);
         }
     }
     pthread_mutex_unlock(&clients_mutex);
-    exit(EXIT_SUCCESS);
 }
