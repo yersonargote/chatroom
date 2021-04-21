@@ -16,7 +16,6 @@
 
 static _Atomic unsigned int cli_count = 0;
 static int uid = 10;
-volatile sig_atomic_t flag = 0;
 
 // Client structure 
 typedef struct {
@@ -44,7 +43,8 @@ void close_all_sockets();
 void str_trim_lf(char* arr, int length);
 void str_overwrite_stdout(void);
 void print_client_addr(struct sockaddr_in addr);
-void catch_ctrl_c_and_exit(int sig);
+//void catch_ctrl_c_and_exit(int sig);
+void catch_ctrl_c_and_exit(sig_atomic_t sig);
 
 int main(int argc, char ** argv) {
     if (argc != 2 ) {
@@ -69,7 +69,8 @@ int main(int argc, char ** argv) {
     serv_addr.sin_port = htons(port);
 
     // Signals
-    signal(SIGPIPE, SIG_IGN);
+    signal(SIGINT, (void*)catch_ctrl_c_and_exit);
+    //signal(SIGPIPE, SIG_IGN);
 
     if ( setsockopt(listenfd, SOL_SOCKET, (SO_REUSEPORT | SO_REUSEADDR), 
                 (char*)&option, sizeof(option)) < 0 ) {
@@ -124,7 +125,7 @@ int main(int argc, char ** argv) {
         sleep(1);
     }
 
-    return EXIT_SUCCESS;
+    exit(EXIT_SUCCESS);
 }
 
 void *handle_client(void *arg) {
@@ -224,6 +225,7 @@ void remove_client(int uid) {
     for (i = 0; i < MAX_CLIENTS; i++) {
         if (clients[i]) {
             if (clients[i]->uid == uid) {
+                close(clients[i]->sock_fd);
                 clients[i] = NULL;
                 break;
             }
@@ -273,8 +275,10 @@ void send_msg_handler() {
     exit(EXIT_SUCCESS);
 }
 
-void catch_ctrl_c_and_exit(int sig) {
-	flag = 1;
+void catch_ctrl_c_and_exit(sig_atomic_t sig) {
+    send_message("exit", 0);
+    close_all_sockets();
+    exit(EXIT_SUCCESS);
 }
 
 void close_all_sockets() {
@@ -283,8 +287,8 @@ void close_all_sockets() {
     
     for (i=0; i < MAX_CLIENTS; i++) {
         if (clients[i]) {
-            // remove_client(clients[i]->uid);
             close(clients[i]->sock_fd);
+            clients[i] = NULL;
         }
     }
     pthread_mutex_unlock(&clients_mutex);
