@@ -43,13 +43,12 @@ void close_all_sockets();
 void str_trim_lf(char* arr, int length);
 void str_overwrite_stdout(void);
 void print_client_addr(struct sockaddr_in addr);
-//void catch_ctrl_c_and_exit(int sig);
 void catch_ctrl_c_and_exit(sig_atomic_t sig);
 
 int main(int argc, char ** argv) {
     if (argc != 2 ) {
         printf("Usando: %s <port>\n", argv[0]);
-        return EXIT_FAILURE;
+        exit(EXIT_FAILURE);
     }
 
     char * ip = "127.0.0.1";
@@ -70,32 +69,31 @@ int main(int argc, char ** argv) {
 
     // Signals
     signal(SIGINT, (void*)catch_ctrl_c_and_exit);
-    //signal(SIGPIPE, SIG_IGN);
 
     if ( setsockopt(listenfd, SOL_SOCKET, (SO_REUSEPORT | SO_REUSEADDR), 
                 (char*)&option, sizeof(option)) < 0 ) {
-        printf("Error: setsockopt\n");
-        return EXIT_FAILURE;
+        perror("Error: setsockopt\n");
+        exit(EXIT_FAILURE);
     }
 
     // Bind
     if ( bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0 ) {
-        printf("Error: bind\n");
-        return EXIT_FAILURE;
+        perror("Error: bind\n");
+        exit(EXIT_FAILURE);
     }
 
     // listen
     if ( listen(listenfd, 10) < 0 ) {
-        printf("Error: listen\n");
-        return EXIT_FAILURE;
+        perror("Error: listen\n");
+        exit(EXIT_FAILURE);
     }
 
     printf("Welcome\n");
 
     pthread_t send_msg_thread;
     if (pthread_create(&send_msg_thread, NULL, (void*) send_msg_handler, NULL) != 0) {
-        printf("Error: pthread\n");
-        return EXIT_FAILURE;
+        perror("Error: pthread\n");
+        exit(EXIT_FAILURE);
     }
 
     while(1) {
