@@ -47,14 +47,14 @@ void catch_ctrl_c_and_exit(sig_atomic_t sig);
 
 int main(int argc, char ** argv) {
     if (argc != 2 ) {
-        printf("Usando: %s <port>\n", argv[0]);
+        fprintf(stderr, "Usando: %s puerto\n", argv[0]);
         exit(EXIT_FAILURE);
     }
 
     char * ip = "127.0.0.1";
-    int port = atoi(argv[1]);
+    int port;
 
-    int option = 1;
+    int valopc = 1;
     int listenfd = 0, connfd = 0;
     struct sockaddr_in serv_addr;
     struct sockaddr_in cli_addr;
@@ -62,19 +62,35 @@ int main(int argc, char ** argv) {
     pthread_t tid;
 
     // Confugurando el socket
-    listenfd = socket(AF_INET, SOCK_STREAM, 0);
-    serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = inet_addr(ip);
-    serv_addr.sin_port = htons(port);
-
+    if ((listenfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        perror("socket");
+        exit(EXIT_FAILURE);
+    }
+   
     // Signals
     signal(SIGINT, (void*)catch_ctrl_c_and_exit);
 
     if ( setsockopt(listenfd, SOL_SOCKET, (SO_REUSEPORT | SO_REUSEADDR), 
-                (char*)&option, sizeof(option)) < 0 ) {
+                (char*)&valopc, sizeof(valopc)) < 0 ) {
         perror("Error: setsockopt\n");
         exit(EXIT_FAILURE);
     }
+
+    port = 0;
+    if (argc > 1) {
+        port = atoi(argv[1]);
+    }
+
+    if (port <= 1023) {
+        fprintf(stderr, "Puerto: %s no valido\n", argv[1]);
+        exit(EXIT_FAILURE);
+    }
+
+    memset(&serv_addr, 0, sizeof(struct sockaddr_in));
+
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_addr.s_addr = inet_addr(ip);
+    serv_addr.sin_port = htons(port);
 
     // Bind
     if ( bind(listenfd, (struct sockaddr*)&serv_addr, sizeof(serv_addr)) < 0 ) {
@@ -90,6 +106,7 @@ int main(int argc, char ** argv) {
 
     printf("Welcome\n");
 
+    // Thread keyboard
     pthread_t send_msg_thread;
     if (pthread_create(&send_msg_thread, NULL, (void*) send_msg_handler, NULL) != 0) {
         perror("Error: pthread\n");
