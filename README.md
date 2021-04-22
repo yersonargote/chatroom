@@ -1,6 +1,5 @@
 # chatroom
-Este proyecto es una copia literal de este proyecto https://github.com/nikhilroxtomar/Chatroom-in-C.
-Simplemente se agregaron las lineas de codigo necesarias para solucionar el parcial de Operativos.
+Este proyecto tomo como base el proyecto de https://github.com/nikhilroxtomar/Chatroom-in-C para implementar los requerimientos necesarios para solucionar el parcial de Sistemas Operativos.
 ### Planteamiento del problema
 
 Se deberá desarrollar dos programas en C que implementen la funcionali-
