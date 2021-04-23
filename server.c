@@ -143,7 +143,6 @@ int main(int argc, char ** argv) {
     exit(EXIT_SUCCESS);
 }
 
-void *handle_client(void *arg) {
     char buffer[BUFFER_SIZE];
     char name[NAME_LEN];
     int leave_flag = 0;
@@ -163,7 +162,7 @@ void *handle_client(void *arg) {
         send_message(buffer, client->uid);
     }
 
-    bzero(buffer, BUFFER_SIZE);
+    memset(buffer, 0, BUFFER_SIZE);
 
     while(1) {
         if(leave_flag) {
@@ -187,11 +186,11 @@ void *handle_client(void *arg) {
             printf("Error: -1\n");
             leave_flag = 1;
         }
-        bzero(buffer, BUFFER_SIZE);
+        memset(buffer, 0, BUFFER_SIZE);
     }
     close(client->sock_fd);
     remove_client(client->uid);
-    free(client);
+    free((void*)client);
     cli_count--;
     pthread_detach(pthread_self());
     return NULL;
@@ -280,6 +279,7 @@ void send_msg_handler() {
             send_message("exit", 0);
 			break;
 		} else {
+			sprintf(buffer, "%s: %s\n", "server", message);
 			sprintf(buffer, "%s: %s\n", "server", message);
 			send_message(buffer, 0);
 		}

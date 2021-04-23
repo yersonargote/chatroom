@@ -1,9 +1,11 @@
 # chatroom
-Este proyecto tomo como base el proyecto de https://github.com/nikhilroxtomar/Chatroom-in-C para implementar los requerimientos necesarios para solucionar el parcial de Sistemas Operativos.
+Este proyecto tomo como base el proyecto de 
+https://github.com/nikhilroxtomar/Chatroom-in-C para implementar los 
+requerimientos necesarios para solucionar el parcial de Sistemas Operativos.
 ### Planteamiento del problema
 
-Se deberá desarrollar dos programas en C que implementen la funcionali-
-dad de un chat simple entre dos sistemas conectados a la red, usando sockets.
+Se deberá desarrollar dos programas en C que implementen la funcionalidad de 
+un chat simple entre dos sistemas conectados a la red, usando sockets.
 
 Uno de los extermos actuará como cliente, y el otro como servidor. Quien recibe
 conexiones (el servidor) enviará al cliente un mensaje de bienvenida, después
