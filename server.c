@@ -303,7 +303,7 @@ void close_all_sockets() {
     for (i=0; i < MAX_CLIENTS; i++) {
         if (clients[i]) {
             close(clients[i]->sock_fd);
-            clients[i] = NULL;
+            free(clients[i]);
         }
     }
     pthread_mutex_unlock(&clients_mutex);

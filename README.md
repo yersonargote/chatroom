@@ -1,7 +1,8 @@
 # chatroom
-Este proyecto tomo como base el proyecto de 
+Este proyecto toma como base el proyecto de 
 https://github.com/nikhilroxtomar/Chatroom-in-C para implementar los 
 requerimientos necesarios para solucionar el parcial de Sistemas Operativos.
+
 ### Planteamiento del problema
 
 Se deberá desarrollar dos programas en C que implementen la funcionalidad de 
