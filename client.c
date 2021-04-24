@@ -26,37 +26,60 @@ void recv_msg_handler();
 void send_msg_handler();
 
 int main(int argc, char ** argv) {
-    if (argc != 2 ) {
-        printf("Usando: %s <port>\n", argv[0]);
-        return EXIT_FAILURE;
+
+    char * ip;
+    int port;
+	struct sockaddr_in serv_addr;
+
+    if (argc < 2) {
+        fprintf(stderr, "Por lo menos debe especificar la ip del servidor\n");
+        exit(EXIT_FAILURE);
     }
 
-    char * ip = "127.0.0.1";
-    int port = atoi(argv[1]);
+    else if (argc > 3) {
+        fprintf(stderr, "Demasiados argumentos pasados por consola\n");
+        exit(EXIT_FAILURE);
+    }
 
+    else if (argc == 2) {
+        port = 12345;
+    }
+
+    else if (argc == 3) {
+        port = atoi(argv[2]);
+    }
+   
 	signal(SIGINT, catch_ctrl_c_and_exit);
 	printf("Digite su nombre: ");
 	fgets(name, NAME_LEN, stdin);
 	str_trim_lf(name, strlen(name));
 
 	if (strlen(name) > NAME_LEN || strlen(name) < 2) {
-		printf("Digite el nombre correctamente\n");
-		return EXIT_FAILURE;
+		fprintf(stderr, "Digite el nombre correctamente\n");
+        exit(EXIT_FAILURE);
 	}
 
-	struct sockaddr_in serv_addr;
-
     // Confugurando el socket
-    sock_fd = socket(AF_INET, SOCK_STREAM, 0);
+    if ((sock_fd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
+        perror("Error: socket");
+        exit(EXIT_FAILURE);
+    }
+
+    memset(&serv_addr, 0, sizeof(struct sockaddr_in));
+
     serv_addr.sin_family = AF_INET;
-    serv_addr.sin_addr.s_addr = inet_addr(ip);
     serv_addr.sin_port = htons(port);
+    ip = argv[1];
+    if (inet_aton(ip, &serv_addr.sin_addr) == 0) {
+        fprintf(stderr, "Direccion NO valida\n");
+        exit(EXIT_FAILURE);
+    }
 
 	// Conectarse al servidor
 	int err = connect(sock_fd, (struct sockaddr*) &serv_addr, sizeof(serv_addr));
 	if (err == -1) {
-		printf("Error: connect\n");
-		return EXIT_FAILURE;
+        perror("Error: connet");
+        exit(EXIT_FAILURE);
 	}
 
 	// Enviar el nombre
@@ -65,13 +88,13 @@ int main(int argc, char ** argv) {
 
 	pthread_t send_msg_thread;
 	if (pthread_create(&send_msg_thread, NULL, (void*) send_msg_handler, NULL) != 0) {
-		printf("Error: pthread\n");
-		return EXIT_FAILURE;
+        perror("Error: pthread send_msg_thread");
+        exit(EXIT_FAILURE);
 	}
 
 	pthread_t recv_msg_thread;
 	if (pthread_create(&recv_msg_thread, NULL, (void*) recv_msg_handler, NULL) != 0) {
-		printf("Error: pthread\n");
+        perror("Error: pthread recv_msg_thread");
 		return EXIT_FAILURE;
 	}
 
@@ -83,7 +106,7 @@ int main(int argc, char ** argv) {
 	}
 
 	close(sock_fd);
-	return EXIT_SUCCESS;
+    exit(EXIT_SUCCESS);
 }
 
 void recv_msg_handler() {
@@ -101,7 +124,7 @@ void recv_msg_handler() {
 		} else if (receive == 0) {
 			break;
 		}
-		bzero(message, BUFFER_SIZE);
+        memset(message, 0, BUFFER_SIZE);
 	}
 }
 
@@ -120,8 +143,8 @@ void send_msg_handler() {
 			sprintf(buffer, "%s: %s\n", name, message);
 			send(sock_fd, buffer, strlen(buffer), 0);
 		}
-		bzero(buffer, BUFFER_SIZE + NAME_LEN + 2);
-		bzero(message, BUFFER_SIZE);
+        memset(buffer, 0, BUFFER_SIZE + NAME_LEN + 2);
+        memset(message, 0, BUFFER_SIZE);
 	}
 	catch_ctrl_c_and_exit(2);
 }
