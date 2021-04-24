@@ -70,7 +70,7 @@ int main(int argc, char ** argv) {
     // Signals
     signal(SIGINT, (void*)catch_ctrl_c_and_exit);
 
-    if ( setsockopt(listenfd, SOL_SOCKET, (SO_REUSEPORT | SO_REUSEADDR), 
+    if ( setsockopt(listenfd, SOL_SOCKET, SO_REUSEADDR, 
                 (char*)&valopc, sizeof(valopc)) < 0 ) {
         perror("Error: setsockopt\n");
         exit(EXIT_FAILURE);
@@ -178,7 +178,7 @@ void *handle_client(void *arg) {
                 str_trim_lf(buffer, strlen(buffer));
                 printf("%s\n", buffer);
             }
-        } else if (receive == 0 || strcmp(buffer, "exit") == 0) {
+        } else if (receive == 0 || strncmp(buffer, "/exit", 5) == 0) {
             sprintf(buffer, "%s ha salido\n", client->name);
             printf("%s", buffer);
             send_message(buffer, client->uid);
@@ -276,8 +276,8 @@ void send_msg_handler() {
 		str_overwrite_stdout();
 		fgets(message, BUFFER_SIZE, stdin);
 		str_trim_lf(message, BUFFER_SIZE);
-		if (strcmp(message, "exit") == 0) {
-            send_message("exit", 0);
+		if (strncmp(message, "/exit", 5) == 0) {
+            send_message("/exit", 0);
 			break;
 		} else {
 			sprintf(buffer, "%s: %s\n", "server", message);
@@ -291,7 +291,7 @@ void send_msg_handler() {
 }
 
 void catch_ctrl_c_and_exit(sig_atomic_t sig) {
-    send_message("exit", 0);
+    send_message("/exit", 0);
     close_all_sockets();
     exit(EXIT_SUCCESS);
 }

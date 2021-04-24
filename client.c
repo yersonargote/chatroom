@@ -77,7 +77,7 @@ int main(int argc, char ** argv) {
 
 	while(1) {
 		if (flag) {
-			printf("\nBye\n");
+			printf("Bye\n");
 			break;
 		}
 	}
@@ -91,7 +91,7 @@ void recv_msg_handler() {
 	while(1) {
 		int receive = recv(sock_fd, message, BUFFER_SIZE, 0);
 		if (receive > 0) {
-            if (strcmp(message, "exit") == 0) {
+            if (strncmp(message, "/exit", 5) == 0) {
                 printf("Servidor finalizado\n");
                 catch_ctrl_c_and_exit(2);
                 break;
@@ -114,7 +114,7 @@ void send_msg_handler() {
 		fgets(message, BUFFER_SIZE, stdin);
 		str_trim_lf(message, BUFFER_SIZE);
 
-		if (strcmp(message, "exit") == 0) {
+		if (strncmp(message, "/exit", 5) == 0) {
 			break;
 		} else {
 			sprintf(buffer, "%s: %s\n", name, message);
