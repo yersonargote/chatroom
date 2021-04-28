@@ -84,7 +84,7 @@ int main(int argc, char ** argv) {
 
 	// Enviar el nombre
 	send(sock_fd, name, NAME_LEN, 0);
-    printf("Welcome\n");
+    printf("Bienvenido\n");
 
 	pthread_t send_msg_thread;
 	if (pthread_create(&send_msg_thread, NULL, (void*) send_msg_handler, NULL) != 0) {
@@ -100,7 +100,7 @@ int main(int argc, char ** argv) {
 
 	while(1) {
 		if (flag) {
-			printf("Bye\n");
+			printf("Adios\n");
 			break;
 		}
 	}

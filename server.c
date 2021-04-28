@@ -23,6 +23,7 @@ typedef struct {
     int sock_fd;
     int uid;
     char name[NAME_LEN];
+    pthread_t thread;
 } client_t;
 
 client_t *clients[MAX_CLIENTS];
@@ -58,8 +59,6 @@ int main(int argc, char ** argv) {
     int listenfd = 0, connfd = 0;
     struct sockaddr_in serv_addr;
     struct sockaddr_in cli_addr;
-
-    pthread_t tid;
 
     // Confugurando el socket
     if ((listenfd = socket(AF_INET, SOCK_STREAM, 0)) < 0) {
@@ -104,7 +103,7 @@ int main(int argc, char ** argv) {
         exit(EXIT_FAILURE);
     }
 
-    printf("Welcome\n");
+    printf("Servidor iniciado\n");
 
     // Thread keyboard
     pthread_t send_msg_thread;
@@ -134,7 +133,8 @@ int main(int argc, char ** argv) {
 
         // Agregar el cliente a la cola
         add_client(client);
-        pthread_create(&tid, NULL, &handle_client, (void*) client);
+
+        pthread_create(&client->thread, NULL, &handle_client, (void*) client);
 
         // Reducir el uso de la CPU
         sleep(1);
@@ -258,7 +258,7 @@ void send_message(char *s, int uid) {
             if (clients[i]->uid != uid) {
                 if (write(clients[i]->sock_fd, s, strlen(s)) < 0) {
                     // printf("Error: Write to descriptor failed\n");
-                    perror("Error: Write to descriptor failed\n");
+                    perror("Error: Escribir al cliente a fallado\n");
                     break;
                 }
             }
