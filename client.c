@@ -42,6 +42,7 @@ int main(int argc, char ** argv) {
     }
 
     else if (argc == 2) {
+        // puerto por defecto
         port = 12345;
     }
 

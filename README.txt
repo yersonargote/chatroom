@@ -1,5 +1,6 @@
 Elaborado por: Erwin Meza Vega <emezav@unicauca.edu.co>
 Modificado por: Yerson Argote <yersonargote>
+Modificado por: Juan Camilo Gonzalez Mulato <jgozalez>
 
 Implementacion de chat entre un servidor y multiples clientes.
 
@@ -9,7 +10,7 @@ Uso del servidor:
 
 Inicia el servidor en el puerto especificado.
 Si el usuario no especifica el puerto, se toma
-por defecto el puerto número 6530.
+por defecto el puerto número 12345.
 
 NOTA: El servidor debe ejecutarse primero, de forma
 que los clientes puedan conectarse.

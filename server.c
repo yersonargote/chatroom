@@ -47,7 +47,7 @@ void print_client_addr(struct sockaddr_in addr);
 void catch_ctrl_c_and_exit(sig_atomic_t sig);
 
 int main(int argc, char ** argv) {
-    if (argc != 2 ) {
+    if (argc > 2 ) {
         fprintf(stderr, "Usando: %s puerto\n", argv[0]);
         exit(EXIT_FAILURE);
     }
@@ -78,6 +78,9 @@ int main(int argc, char ** argv) {
     port = 0;
     if (argc > 1) {
         port = atoi(argv[1]);
+    } else {
+        // puerto por defecto
+        port = 12345;
     }
 
     if (port <= 1023) {
