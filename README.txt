@@ -1,6 +1,6 @@
-Elaborado por: Erwin Meza Vega <emezav@unicauca.edu.co>
-Modificado por: Yerson Argote <yersonargote>
-Modificado por: Juan Camilo Gonzalez Mulato <jgozalez>
+Elaborado por: Yerson Argote <yersonargote>
+Elaborado por: Juan Camilo Gonzalez Mulato <jgozalez>
+Guiado por: Erwin Meza Vega <emezav@unicauca.edu.co>
 
 Implementacion de chat entre un servidor y multiples clientes.
 
@@ -26,4 +26,4 @@ Uso del cliente:
 
 Inicia una conexión de chat al servidor ubicado en la
 dirección IP_SERVER, en el puerto especificado. Si no se
-especifica, la conexión se realizará al puerto 1234.
+especifica, la conexión se realizará al puerto 12345.
